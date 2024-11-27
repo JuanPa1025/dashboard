@@ -1,0 +1,157 @@
+﻿@model IEnumerable<Glamping_Addventure.Models.Paquete>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table" id="tablaPaquete">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.NombrePaquete)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ImagenPaquete)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Descripcion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Precio)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Estado)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IdhabitacionNavigation)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IdservicioNavigation)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.NombrePaquete)
+            </td>
+                <td>
+                    @if (item.ImagenPaquete != null && item.ImagenPaquete.Length > 0)
+                    {
+                        var base64Image = Convert.ToBase64String(item.ImagenPaquete);
+                        var imageSrc = $"data:image/png;base64,{base64Image}";
+                        <img src="@imageSrc" alt="Imagen de @item.NombrePaquete" style="width:100px;height:auto;" />
+                    }
+                    else
+                    {
+                        <span>No hay imagen</span>
+                    }
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Descripcion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Precio)
+            </td>
+            <td>
+                @Html.Raw(item.Estado ? "Activo" : "Inactivo")
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdhabitacionNavigation.NombreHabitacion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdservicioNavigation.NombreServicio)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Idpaquete">Editar</a> |
+                <a href="javascript:void(0)" class="btn btn-info btn-sm" onclick="loadDetails(@item.Idpaquete)">Detalles</a> |
+                <a href="javascript:void(0)" class="btn btn-warning btn-sm" onclick="loadDelete(@item.Idpaquete)">Eliminar</a>
+            
+                <form asp-action="CambiarEstado" asp-route-id="@item.Idpaquete" method="post">
+                    <button type="submit">
+                        @(item.Estado ? "Desactivar" : "Activar")
+                    </button>
+                </form>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<div class="modal fade" id="detailsModal" tabindex="1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Detalles del Paquete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detailsModalBody">
+                <!-- Aquí se carga el contenido parcial -->
+                <div class="text-center">Cargando...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">¿Desea eliminar este paquete?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="deleteModalBody">
+                <div class="text-center">Cargando...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+            $('#tablaPaquete').DataTable({
+                language: {
+                    "sLengthMenu": "Mostrar _MENU_ entradas",
+                    "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                    "sSearch": "Buscar:"
+                }
+            });
+        })
+
+    </script>
+
+    <script>
+        function loadDetails(id) {
+            $.get('/Paquetes/Details/' + id, function (data) {
+                // Insertar el contenido en el modal
+                $('#detailsModalBody').html(data);
+                // Abrir el modal
+                $('#detailsModal').modal('show');
+            }).fail(function () {
+                $('#detailsModalBody').html('<div class="text-danger">Error al cargar los detalles.</div>');
+            });
+        }
+    </script>
+
+    <script>
+                function loadDelete(id) {
+            $.get('/Paquetes/Delete/' + id, function (data) {
+                $('#deleteModalBody').html(data); // Inserta el contenido parcial
+                $('#deleteModal').modal('show'); // Muestra el modal
+            }).fail(function () {
+                $('#deleteModalBody').html('<div class="text-danger">Error al cargar la información del paquete.</div>');
+            });
+        }
+    </script>
+
+}
